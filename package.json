@@ -4,6 +4,8 @@
   "description": "Given a polygon (array of x, y coordinates) finds the largest contained rectangle",
   "main": "index.js",
   "dependencies": {
+    "@turf/bbox": "^6.0.1",
+    "@turf/point-grid": "^6.0.1",
     "d3-array": "^2.8.0",
     "d3-polygon": "^2.0.0",
     "simplify-js": "^1.2.4"
