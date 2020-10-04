@@ -1,8 +1,8 @@
 ## Largest Rectangle In Polygon
 
-Return the largest rectangle contained in a polygon.
+Return the largest rectangle contained in a polygon (now with helpful geojson input/outputs).
 
-Extracted from [d3plus](https://github.com/alexandersimoes/d3plus)
+Based on [socialtables/largest-rect-in-poly](https://github.com/socialtables/largest-rect-in-poly), which was based on [d3plus](https://github.com/alexandersimoes/d3plus).
 
 Built on [d3](https://github.com/mbostock/d3) and
 [simplify-js](https://github.com/mourner/simplify-js).
