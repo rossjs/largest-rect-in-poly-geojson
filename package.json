@@ -4,12 +4,13 @@
   "description": "Given a polygon (array of x, y coordinates) finds the largest contained rectangle",
   "main": "index.js",
   "dependencies": {
-    "simplify-js": "^1.2.1",
-    "d3": "~3.5.5"
+    "d3-array": "^2.8.0",
+    "d3-polygon": "^2.0.0",
+    "simplify-js": "^1.2.4"
   },
   "devDependencies": {
-    "mocha": "~2.1.0",
-    "should": "^4.6.3"
+    "mocha": "^8.1.3",
+    "should": "^13.2.3"
   },
   "scripts": {
     "test": "mocha test/"

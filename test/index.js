@@ -1,4 +1,5 @@
 var should = require("should");
+const fs = require('fs');
 var findLargestRect = require("../index");
 var testPolygons = require("./polygons.json");
 var debugSVG = require("./debug-svg");
@@ -22,33 +23,35 @@ describe("largest-rect-in-poly", function() {
 	it("should find the largest rectangle in a triangle", function(){
 		// diffcult to calculate triangles center.
 		var polygon = [[0, 0], [0, 30], [40, 0]];
-		var rectangle = findLargestRect(polygon);
-		should(rectangle[0]).have.property("cx");
-		should(rectangle[0]).have.property("cy");
-		should(rectangle[0]).have.property("width");
-		should(rectangle[0]).have.property("height");
-		var rectArea = rectangle[1];
-		rectArea.should.be.within(240, 300);
+		var result = findLargestRect(polygon);
+		should(result).have.property("cx");
+		should(result).have.property("cy");
+		should(result).have.property("area");
+		should(result).have.property("geometry");
+		should(result).have.property("width");
+		should(result).have.property("height");
+		const { area } = result;
+		area.should.be.within(240, 300);
 	});
+	
 	it("should find the largest rectangle in a perfect square", function(){
 		var polygon = [[0, 0], [0, 1000], [1000, 1000], [1000, 0]];
-		var rectangle = findLargestRect(polygon);
-		should(rectangle[0]).have.property("cx", 500);
-		should(rectangle[0]).have.property("cy", 500);
-		var width = rectangle[0].width;
-		var height = rectangle[0].height;
+		var result = findLargestRect(polygon);
+		should(result).have.property("cx", 500);
+		should(result).have.property("cy", 500);
+		const { width, height } = result;
 		should(width).be.within(980, 1020);
 		should(height).be.within(980, 1020);
 	});
+
 	it("should find the largest rectangle in a perfect rectangle", function(){
 		var polygon = [[0, 0], [0, 1000], [500, 1000], [500, 0]];
-		var rectangle = findLargestRect(polygon);
-		should(rectangle[0]).have.property("cx", 250);
-		should(rectangle[0]).have.property("cy", 500);
-		should(rectangle[0]).have.property("width");
-		should(rectangle[0]).have.property("height");
-		var width = rectangle[0].width;
-		var height = rectangle[0].height;
+		var result = findLargestRect(polygon);
+		should(result).have.property("cx", 250);
+		should(result).have.property("cy", 500);
+		should(result).have.property("width");
+		should(result).have.property("height");
+		const { width, height } = result;
 		width.should.be.within(990, 1010);
 		height.should.be.within(490, 510);
 	});
@@ -56,21 +59,24 @@ describe("largest-rect-in-poly", function() {
 	var variants = [
 		{
 			polygon: "simple",
-			bounds: [855000, 885000],
-			tries: 250
+			minArea: 855000,
+			nTries: 1000,
 		}, {
 			polygon: "largerRectangle",
-			bounds: [230000, 250000]
+			minArea: 230000,
 		}, {
-				polygon: "medium",
-			bounds: [90500, 95000]
+			polygon: "medium",
+			minArea: 90500,
+			nTries: 50,
 		}, {
 			polygon: "complex",
-			bounds: [300500, 335000],
-			tries: 40
+			minArea: 300500,
+			nTries: 50,
 		}, {
 			polygon: "veryComplex",
-			bounds: [21000, 25000]
+			minArea: 21000,
+			nTries: 500,
+			output: true,
 		}
 	];
 
@@ -78,13 +84,24 @@ describe("largest-rect-in-poly", function() {
 		variants.forEach(function(v) {
 			it("should find the largest rectangle in a " + v.polygon + " polygon", function() {
 				var polygon = testPolygons[v.polygon];
-				var rectangle = findLargestRect(polygon, {nTries: v.tries || 20});
-				should(rectangle[0]).have.property("cx");
-				should(rectangle[0]).have.property("cy");
-				should(rectangle[0]).have.property("width");
-				should(rectangle[0]).have.property("height");
-				var rectArea = rectangle[1];
-				rectArea.should.be.within(v.bounds[0], v.bounds[1]);
+				var result = findLargestRect(polygon, { nTries: v.nTries || 20 });
+				should(result).have.property("cx");
+				should(result).have.property("cy");
+				should(result).have.property("width");
+				should(result).have.property("height");
+				should(result).have.property("area");
+				const { area } = result;
+				area.should.be.above(v.minArea);
+				if(v.output) {
+					try {
+						fs.openSync('areas.txt', 'wx')
+					} catch {}
+				// 	fs.writeFile('areas.txt', `${area}\n`, { flag: 'wx' }, function (err) {
+				// 		if (err) throw err;
+				// 		console.log("It's saved!");
+				// });
+					fs.appendFileSync('areas.txt', `${area}\n`);
+				}
 			});
 		});
 	});

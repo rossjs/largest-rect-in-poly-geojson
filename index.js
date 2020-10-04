@@ -5,8 +5,10 @@
 
  Built on d3 and simplify-js.
  */
-var d3 = require("d3");
-var simplify = require("simplify-js");
+const { extent, range } = require("d3-array");
+const { polygonArea, polygonCentroid } = require("d3-polygon");
+const simplify = require("simplify-js");
+const { createPolygon, createFeatureCollection } = require('./utils/geojson');
 
 var squaredDist = function(a, b) {
 	var deltax, deltay;
@@ -233,8 +235,8 @@ module.exports = function(poly, options) {
 	// Copy polygon and add initial point to the end of it
 
 	events = [];
-	aspectRatioStep = 0.5;
-	angleStep = 5;
+	aspectRatioStep = 0.1;
+	angleStep = 0.1;
 	if (options == null) {
 		options = {};
 	}
@@ -263,7 +265,7 @@ module.exports = function(poly, options) {
 		}
 	}
 	if (angles == null) {
-		angles = d3.range(-90, 90 + angleStep, angleStep);
+		angles = range(-90, 90 + angleStep, angleStep);
 	}
 	if (options.aspectRatio != null) {
 		if (options.aspectRatio instanceof Array) {
@@ -283,14 +285,15 @@ module.exports = function(poly, options) {
 			}
 		}
 	}
-	area = Math.abs(d3.geom.polygon(poly).area());
+	
+	area = Math.abs(polygonArea(poly));
 	if (area === 0) {
 		return null;
 	}
-	ref = d3.extent(poly, function(d) {
+	ref = extent(poly, function(d) {
 		return d[0];
 	}), minx = ref[0], maxx = ref[1];
-	ref1 = d3.extent(poly, function(d) {
+	ref1 = extent(poly, function(d) {
 		return d[1];
 	}), miny = ref1[0], maxy = ref1[1];
 	tolerance = Math.min(maxx - minx, maxy - miny) * options.tolerance;
@@ -324,10 +327,10 @@ module.exports = function(poly, options) {
 			poly: poly
 		});
 	}
-	ref2 = d3.extent(poly, function(d) {
+	ref2 = extent(poly, function(d) {
 		return d[0];
 	}), minx = ref2[0], maxx = ref2[1];
-	ref3 = d3.extent(poly, function(d) {
+	ref3 = extent(poly, function(d) {
 		return d[1];
 	}), miny = ref3[0], maxy = ref3[1];
 	bBox = [[minx, miny], [maxx, miny], [maxx, maxy], [minx, maxy]];
@@ -335,7 +338,7 @@ module.exports = function(poly, options) {
 	widthStep = Math.min(boxWidth, boxHeight) / 50;
 	if (origins == null) {
 		origins = [];
-		centroid = d3.geom.polygon(poly).centroid();
+		centroid = polygonCentroid(poly);
 		if (pointInPoly(centroid, poly)) {
 			origins.push(centroid);
 		}
@@ -416,7 +419,7 @@ module.exports = function(poly, options) {
 				} else {
 					minAspectRatio = Math.max(1, options.minWidth / maxHeight, maxArea / (maxHeight * maxHeight));
 					maxAspectRatio = Math.min(options.maxAspectRatio, maxWidth / options.minHeight, (maxWidth * maxWidth) / maxArea);
-					aRatios = d3.range(minAspectRatio, maxAspectRatio + aspectRatioStep, aspectRatioStep);
+					aRatios = range(minAspectRatio, maxAspectRatio + aspectRatioStep, aspectRatioStep);
 				}
 				for (m = 0, len3 = aRatios.length; m < len3; m++) {
 					aRatio = aRatios[m];
@@ -447,7 +450,8 @@ module.exports = function(poly, options) {
 								cy: y0,
 								width: width,
 								height: height,
-								angle: angle
+								angle: angle,
+								geometry: [...rectPoly, rectPoly[0]],
 							};
 							left = width;
 						} else {
@@ -471,5 +475,28 @@ module.exports = function(poly, options) {
 			}
 		}
 	}
-	return [maxRect, maxArea, events];
+
+	
+
+	const result = { area: maxArea, ...maxRect };
+
+	if (options.output === 'geojson') {
+		result.geometry = createPolygon(maxRect.geometry)
+	}
+
+	if (options.compare) {
+		const inputPolygon = createPolygon(poly);
+		const highlightStyles = {
+			stroke: "#f90101",
+			"stroke-width": 2,
+			"stroke-opacity": 1,
+			fill: "#ef0b0b",
+			"fill-opacity": 0.5
+		};
+		
+		const highlightedPolygon = createPolygon(maxRect.geometry, highlightStyles);
+		result.compareOutput = createFeatureCollection(inputPolygon, highlightedPolygon)
+	}
+
+	return result;
 };
