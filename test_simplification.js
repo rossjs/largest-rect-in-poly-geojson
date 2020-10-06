@@ -4,11 +4,12 @@ const path = require('path');
 const largestRectInPoly = require('./index');
 
 const featCollection = require('./test/data/buildings.json');
+const { createPolygon } = require('./utils/geojson');
 
 const { features } = featCollection;
 
 const createRect = (coords) => {
-  const { geometry } = largestRectInPoly(coords, { nTries: 20, output: 'geojson', tolerance: 0 });
+  const simplifiedPoly = largestRectInPoly(coords, { nTries: 20, output: 'geojson' });
   const properties = {
     stroke: '#f90101',
     'stroke-width': 2,
@@ -16,7 +17,8 @@ const createRect = (coords) => {
     fill: '#ef0b0b',
     'fill-opacity': 0.5,
   };
-  featCollection.features.push({ ...geometry, properties });
+  const poly = createPolygon(simplifiedPoly, properties);
+  featCollection.features.push(poly);
 };
 
 let remaining = features.length;
@@ -33,5 +35,6 @@ features.forEach(({ geometry }) => {
   }
 });
 
-const filePath = path.join(__dirname, 'test', 'data', 'output.json');
+const filePath = path.join(__dirname, 'test', 'data', 'simplified.json');
+
 fs.writeFileSync(filePath, JSON.stringify(featCollection, null, 2));

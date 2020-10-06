@@ -8,7 +8,6 @@ const coords = createPointGrid(buildingPoly, 0.002);
 
 const points = coords.map(createPoint);
 
-const featureCollection = createFeatureCollection(buildingPoly, ...points)
+const featureCollection = createFeatureCollection(buildingPoly, ...points);
 
 fs.writeFileSync(path.join(__dirname, 'data', 'grid-test.json'), JSON.stringify(featureCollection, null, 2));
-

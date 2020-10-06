@@ -1,22 +1,22 @@
 exports.createPolygon = (coords, properties = {}) => ({
-  type: "Feature",
+  type: 'Feature',
   properties,
   geometry: {
-    type: "Polygon",
-    coordinates: [coords]
-  }
+    type: 'Polygon',
+    coordinates: [coords],
+  },
 });
 
 exports.createFeatureCollection = (...args) => ({
-  type: "FeatureCollection",
-  features: [...args]
+  type: 'FeatureCollection',
+  features: [...args],
 });
 
 exports.createPoint = (coordinates) => ({
-  type: "Feature",
+  type: 'Feature',
   properties: {},
   geometry: {
-    type: "Point",
-    coordinates
-  }
+    type: 'Point',
+    coordinates,
+  },
 });
